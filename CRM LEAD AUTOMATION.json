@@ -1,0 +1,955 @@
+{
+  "name": "CRM LEAD AUTOMATION",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crm-lead",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        352
+      ],
+      "id": "85110350-2bc8-46c3-97eb-c48e6de0eb47",
+      "name": "Webhook",
+      "webhookId": "9c166c94-92ee-45d8-ae02-1c619ec0e963"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2cf8a6e8-0dc0-41da-b15d-d7f4c9cd3f11",
+              "name": "NAME",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "9f68554d-a8b9-4bd9-9e88-3cc34ae29dbf",
+              "name": "EMAIL",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "2b287f28-8616-45d9-89fc-84722675fab2",
+              "name": "BUDGET",
+              "value": "={{ $json.body.budget }}",
+              "type": "number"
+            },
+            {
+              "id": "766c76b8-38ed-4683-8470-4a35815dc7d2",
+              "name": "COUNTRY",
+              "value": "={{ $json.body.country }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        352
+      ],
+      "id": "1ff3dc1c-79d0-4a1e-a8c1-aebce1a7f61f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "66ffc882-f03f-4738-97fa-a7432d76e67e",
+              "leftValue": "={{ $json.EMAIL }}",
+              "rightValue": "@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "9480d047-b905-4390-8240-42a15b8a97af",
+              "leftValue": "={{ $json.BUDGET }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        352
+      ],
+      "id": "f88215df-41e0-4a90-a736-9e147004c358",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea7f7046-1522-4d55-946a-1893fbd495cf",
+              "name": "LEAD CORE",
+              "value": "0",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        352
+      ],
+      "id": "ad314c88-f12d-4602-8646-3c3cd3433428",
+      "name": "LEAD SCORE"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e5d6d784-cd74-4f35-a22d-9ad510ba04b8",
+              "name": "LEAD CORE 2",
+              "value": "={{\n(\n  ($('Edit Fields').item.json.BUDGET > 100000 ? 5 : 2)\n  +\n  (($('Edit Fields').item.json.COUNTRY === \"India\") ? 2 : 0)\n  +\n  ((($('Edit Fields').item.json.EMAIL || \"\").toLowerCase().includes(\"gmail\")) ? 1 : 0)\n)\n}}",
+              "type": "string"
+            },
+            {
+              "id": "d15b3a5e-1fee-4c75-8acc-7e865dbffb56",
+              "name": "country for switching",
+              "value": "={{ $('If').item.json.COUNTRY .trim().toLowerCase()}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        352
+      ],
+      "id": "172be77a-7595-4fe6-9bd7-c67ef6cc82e7",
+      "name": "lead score2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['country for switching'] }}",
+                    "rightValue": "india",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "1cb0e355-fd39-4349-9b46-b5a7662716a0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INDIA"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "454e9363-c774-4714-a171-203529675d08",
+                    "leftValue": "={{ $json['country for switching'] }}",
+                    "rightValue": "usa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "USA "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "76ee4f81-c767-4c2f-ba90-0e2d092a4e19",
+                    "leftValue": "={{ $json['country for switching'] }}",
+                    "rightValue": "uk",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "UK"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        336
+      ],
+      "id": "51a6b975-f6d4-4f56-a407-a8c9cf3d46ea",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['LEAD CORE 2'].toNumber() }}",
+                    "rightValue": 7,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    },
+                    "id": "80845643-ffac-4265-8400-f6ec8a35aede"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Premium"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e95202bf-e5c1-4b56-bb2d-3257ddbfbb85",
+                    "leftValue": "={{ $json['LEAD CORE 2'].toNumber() }}",
+                    "rightValue": 7,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Standard"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        352
+      ],
+      "id": "b2818c4e-797a-4b49-9c4b-bb807cf55ffd",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['LEAD CORE 2'].toNumber() }}",
+                    "rightValue": 7,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    },
+                    "id": "80845643-ffac-4265-8400-f6ec8a35aede"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Premium"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e95202bf-e5c1-4b56-bb2d-3257ddbfbb85",
+                    "leftValue": "={{ $json['LEAD CORE 2'].toNumber() }}",
+                    "rightValue": 7,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Standard"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        736
+      ],
+      "id": "ffd33d53-d087-46e0-82da-d3805bb44b68",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['LEAD CORE 2'].toNumber() }}",
+                    "rightValue": 7,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    },
+                    "id": "80845643-ffac-4265-8400-f6ec8a35aede"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Premium"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e95202bf-e5c1-4b56-bb2d-3257ddbfbb85",
+                    "leftValue": "={{ $json['LEAD CORE 2'].toNumber() }}",
+                    "rightValue": 7,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Standard"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        -32
+      ],
+      "id": "d612c02d-0f67-46b3-b0c9-9a206faf0ac0",
+      "name": "SWITCH 1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "03c37d78-d93b-4c7b-a702-c67217fe4d2b",
+              "name": "assignedteam",
+              "value": "India",
+              "type": "string"
+            },
+            {
+              "id": "b3d737f7-fee3-46d9-9e34-04c2da51a90a",
+              "name": "priority",
+              "value": "premium",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        -128
+      ],
+      "id": "3b84e029-83fb-420d-8164-37247f9a3587",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "03c37d78-d93b-4c7b-a702-c67217fe4d2b",
+              "name": "assignedteam",
+              "value": "India",
+              "type": "string"
+            },
+            {
+              "id": "b3d737f7-fee3-46d9-9e34-04c2da51a90a",
+              "name": "priority",
+              "value": "standard",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        64
+      ],
+      "id": "858ce51a-6976-4a31-8e8b-4e97e5ebfd0a",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "03c37d78-d93b-4c7b-a702-c67217fe4d2b",
+              "name": "assignedteam",
+              "value": "USA",
+              "type": "string"
+            },
+            {
+              "id": "b3d737f7-fee3-46d9-9e34-04c2da51a90a",
+              "name": "priority",
+              "value": "premium",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        256
+      ],
+      "id": "ffebf2db-5a86-4115-aeaa-98240ce52778",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "03c37d78-d93b-4c7b-a702-c67217fe4d2b",
+              "name": "assignedteam",
+              "value": "USA",
+              "type": "string"
+            },
+            {
+              "id": "b3d737f7-fee3-46d9-9e34-04c2da51a90a",
+              "name": "priority",
+              "value": "standard",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        448
+      ],
+      "id": "ea878ed6-ca09-4237-b30d-8642a14c6cee",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "03c37d78-d93b-4c7b-a702-c67217fe4d2b",
+              "name": "assignedteam",
+              "value": "UK",
+              "type": "string"
+            },
+            {
+              "id": "b3d737f7-fee3-46d9-9e34-04c2da51a90a",
+              "name": "priority",
+              "value": "premium",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        640
+      ],
+      "id": "eaf1a0dc-a73c-4af1-8063-d99d4892f52a",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "03c37d78-d93b-4c7b-a702-c67217fe4d2b",
+              "name": "assignedteam",
+              "value": "UK",
+              "type": "string"
+            },
+            {
+              "id": "b3d737f7-fee3-46d9-9e34-04c2da51a90a",
+              "name": "priority",
+              "value": "standard",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        832
+      ],
+      "id": "a41abe0f-7f8e-4fd6-82b8-7d1edc853626",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1atwLI6ZdJSYT0wg6DzHB79aRpJmROG3a5mB1Q0riXtI",
+          "mode": "list",
+          "cachedResultName": "CRM database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1atwLI6ZdJSYT0wg6DzHB79aRpJmROG3a5mB1Q0riXtI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "assigned team data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1atwLI6ZdJSYT0wg6DzHB79aRpJmROG3a5mB1Q0riXtI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "Name": "={{ $('If').item.json.NAME }}",
+            "Email": "={{ $('If').item.json.EMAIL }}",
+            "Budget": "={{ $('If').item.json.BUDGET }}",
+            "Country": "={{ $('If').item.json.COUNTRY }}",
+            "Lead_score": "={{ $('SWITCH 1').item.json['LEAD CORE 2'] }}",
+            "Assigned_team": "={{ $json.assignedteam }}",
+            "priority": "={{ $json.priority }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead_score",
+              "displayName": "Lead_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Assigned_team",
+              "displayName": "Assigned_team",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1792,
+        352
+      ],
+      "id": "765b461e-9275-49df-9e7e-0c81123c7132",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XpzOaCx0IO6eoQ3z",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "LEAD SCORE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LEAD SCORE": {
+      "main": [
+        [
+          {
+            "node": "lead score2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "lead score2": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "SWITCH 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SWITCH 1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3218c04e-1a11-4199-88d9-749f66faec72",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c29c2e84dc5aff271619f30b8ca6a3a3cbaee874d080eb86781bd6cb1aa1e29a"
+  },
+  "nodeGroups": [],
+  "id": "i7ahvvM7kah1WHem",
+  "tags": []
+}
