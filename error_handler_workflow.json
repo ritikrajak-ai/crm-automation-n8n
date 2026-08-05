@@ -1,0 +1,958 @@
+{
+  "name": "Failure handler workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "3f86f262-e1d6-4a0e-8384-b39efcad62ab",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -160
+      ],
+      "id": "df7d206c-3d6c-42d6-a63e-9387c2aaca21",
+      "name": "Webhook",
+      "webhookId": "3f86f262-e1d6-4a0e-8384-b39efcad62ab"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "579928bf-7d40-43bf-9261-d6d6431515f3",
+              "name": "timestamp",
+              "value": "={{$now}}",
+              "type": "string"
+            },
+            {
+              "id": "459ba779-b2bd-44fc-ae50-bfc2d7b2d7ec",
+              "name": "source_system",
+              "value": "={{ $json.body.source_system }}",
+              "type": "string"
+            },
+            {
+              "id": "292e6ff3-ba9e-4f1b-9513-f8b7ebf6281b",
+              "name": "workflow",
+              "value": "={{ $json.body.workflow }}",
+              "type": "string"
+            },
+            {
+              "id": "22bb8a24-817b-419a-b8f4-65b311f88cb9",
+              "name": "stage",
+              "value": "={{ $json.body.stage }}",
+              "type": "string"
+            },
+            {
+              "id": "6b75906d-94c1-4d40-bad4-206f6098ed90",
+              "name": "error_message",
+              "value": "={{ $json.body.error.message||\"Unknown error\" }}",
+              "type": "string"
+            },
+            {
+              "id": "1f93f06e-3332-4c5d-872e-2799037c3e9f",
+              "name": "lead_data",
+              "value": "={{ $json.body.lead_data }}",
+              "type": "object"
+            },
+            {
+              "id": "ab1a97ac-87de-481f-a497-5cb66fd77b1b",
+              "name": "retry_count",
+              "value": "0",
+              "type": "string"
+            },
+            {
+              "id": "bf1fa099-0175-4822-82fe-71a59040e46f",
+              "name": "retryable",
+              "value": "={{ $json.body.retryable }}",
+              "type": "string"
+            },
+            {
+              "id": "73b9bdf5-c0f5-4dae-a2a0-90406244be77",
+              "name": "unique id",
+              "value": "={{ $json.body['Unique id'] }}",
+              "type": "string"
+            },
+            {
+              "id": "1381d2a8-00a0-49ec-9551-ae995befd631",
+              "name": "Lead id",
+              "value": "={{ $json.body['Lead id'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -160
+      ],
+      "id": "a462e20c-e0da-4686-89ae-f9bb03487ea4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "762bd007-cb31-4c5f-acec-715b11e8edf5",
+              "leftValue": "={{ $json.error_message.toLowerCase()}}",
+              "rightValue": "credential",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "ea8f1664-c3f2-4d94-888b-c8c4262ec8ab",
+              "leftValue": "={{ $json.error_message.toLowerCase() }}",
+              "rightValue": "timeout",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "e82630f2-5b3c-4c09-995e-68b13dd72480",
+              "leftValue": "={{ $json.error_message.toLowerCase() }}",
+              "rightValue": "rate limit",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -160
+      ],
+      "id": "26f1a1f1-4179-47ae-805a-92c0e1af2049",
+      "name": "classify error"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc",
+          "mode": "list",
+          "cachedResultName": "FAILED LEADS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Retryable",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $('Edit Fields').item.json.timestamp }}",
+            "Lead_ID": "={{ $('Edit Fields').item.json['Lead id'] }}",
+            "Unique id": "={{ $('Edit Fields').item.json['unique id'] }}",
+            "Name": "={{ $('Edit Fields').item.json.lead_data.name }}",
+            "Email": "={{ $('Edit Fields').item.json.lead_data.email }}",
+            "Budget": "={{ $('Edit Fields').item.json.lead_data.budget }}",
+            "Country": "={{ $('Edit Fields').item.json.lead_data.country }}",
+            "Workflow": "={{ $('Edit Fields').item.json.workflow }}",
+            "Error_Message": "={{ $('Edit Fields').item.json.error_message }}",
+            "Retryable": "={{ $('Edit Fields').item.json.retryable }}",
+            "Status": "RETRY_PENDING",
+            "Retry_Count": "={{ $('Edit Fields').item.json.retry_count }}",
+            "Failed_Node": "={{ $('Webhook').item.json.body.error.node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Unique id",
+              "displayName": "Unique id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Workflow",
+              "displayName": "Workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Failed_Node",
+              "displayName": "Failed_Node",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error_Message",
+              "displayName": "Error_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Retryable",
+              "displayName": "Retryable",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Retry_Count",
+              "displayName": "Retry_Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        -160
+      ],
+      "id": "be44c6b7-4808-47ce-a945-846332777f23",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zIPhdP6k64OABwUY",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1190370825,
+          "mode": "list",
+          "cachedResultName": "Non Retryable",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc/edit#gid=1190370825"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $('Edit Fields').item.json.timestamp }}",
+            "Lead_ID": "={{ $('Edit Fields').item.json['Lead id'] }}",
+            "Unique id": "={{ $('Edit Fields').item.json['unique id'] }}",
+            "Name": "={{ $('Edit Fields').item.json.lead_data.name }}",
+            "Email": "={{ $('Edit Fields').item.json.lead_data.email }}",
+            "Budget": "={{ $('Edit Fields').item.json.lead_data.budget }}",
+            "Country": "={{ $('Edit Fields').item.json.lead_data.country }}",
+            "Workflow": "={{ $('Edit Fields').item.json.workflow }}",
+            "Error_Message": "={{ $('Edit Fields').item.json.error_message }}",
+            "Retryable": "={{ $('Edit Fields').item.json.retryable }}",
+            "Status": "FAILED",
+            "Retry_Count": "={{ $('Edit Fields').item.json.retry_count }}",
+            "Failed_Node": "={{ $('Webhook').item.json.body.error.node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Unique id",
+              "displayName": "Unique id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Workflow",
+              "displayName": "Workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Failed_Node",
+              "displayName": "Failed_Node",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error_Message",
+              "displayName": "Error_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Retryable",
+              "displayName": "Retryable",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Retry_Count",
+              "displayName": "Retry_Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        -64
+      ],
+      "id": "edc3100c-2bd1-40d7-a9fc-2ae67b35e8c0",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zIPhdP6k64OABwUY",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"logged\",\n  \"result\": \"stored in sheet\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1568,
+        -160
+      ],
+      "id": "336b8983-6723-4fd6-bcf1-7bcd1aa42530",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"logged\",\n  \"result\": \"stored in sheet\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        896,
+        -64
+      ],
+      "id": "a44dac00-9b98-40ba-a914-df5381af0a3f",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc",
+          "mode": "list",
+          "cachedResultName": "FAILED LEADS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Retryable",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Lead_ID",
+              "lookupValue": "={{ $('Edit Fields').item.json['Lead id'] }}"
+            },
+            {
+              "lookupColumn": "Unique id",
+              "lookupValue": "={{ $json['unique id'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        -256
+      ],
+      "id": "5b841477-c0d1-4a60-a3f4-cfcc051797ef",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zIPhdP6k64OABwUY",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8df22071-1c76-4ea7-81fa-5250d503d89e",
+              "leftValue": "={{ $json.row_number}}",
+              "rightValue": "={{ $json.Lead_ID }}",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -256
+      ],
+      "id": "c6b419c6-31f4-43c5-a67a-0ad134abb913",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc",
+          "mode": "list",
+          "cachedResultName": "FAILED LEADS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Retryable",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12wtIemJFSodXmFUi4CcSwqzaSqZZavquer10G6sGiJc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $('Edit Fields').item.json['Lead id'] }}",
+            "Workflow": "={{ $('Edit Fields').item.json.workflow }}",
+            "Error_Message": "={{ $('Edit Fields').item.json.error_message }}",
+            "Retryable": "={{ $('Edit Fields').item.json.retryable }}",
+            "Failed_Node": "={{ $('Webhook').item.json.body.error.node }}",
+            "Unique id": "={{ $json['Unique id'] }}",
+            "Status": "RETRY_PENDING",
+            "Retry_Count": "={{ $json.Retry_Count+1 }}"
+          },
+          "matchingColumns": [
+            "Unique id"
+          ],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Unique id",
+              "displayName": "Unique id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Workflow",
+              "displayName": "Workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Failed_Node",
+              "displayName": "Failed_Node",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error_Message",
+              "displayName": "Error_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Retryable",
+              "displayName": "Retryable",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Retry_Count",
+              "displayName": "Retry_Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        -336
+      ],
+      "id": "667d4aca-13a0-422d-9ee8-d1fbcf9e5d94",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zIPhdP6k64OABwUY",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"logged\",\n  \"result\": \"stored in sheet\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1344,
+        -352
+      ],
+      "id": "b41ce5d1-e2e1-4df5-8fa3-7af3d15193c9",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1120,
+        -160
+      ],
+      "id": "d5bdda96-2c69-4428-8a3a-b6a9460af436",
+      "name": "Loop Over Items"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "classify error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "classify error": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "873152b2-39b9-4eb8-99d4-b19f8fb0de7b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8654dc98ba7d73d7df38d307e5d9b5e83c2618af84975cf01ce414330eb0a0e1"
+  },
+  "nodeGroups": [],
+  "id": "ztAF75p889JHENuS",
+  "tags": []
+}
